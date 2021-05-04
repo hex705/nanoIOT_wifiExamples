@@ -1,4 +1,9 @@
 
+
+// this is Arduino MQTT example with some notes added for shiftr connections
+// find generic original in Arduino-->examples-->ArduinoMqttClient-->WiFiSimpleSender
+
+
 /*
   ArduinoMqttClient - WiFi Simple Sender
 

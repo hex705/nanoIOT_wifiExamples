@@ -1,7 +1,7 @@
 
-
-// talk to WEB page directly with shiftr -- 
-// example from IGOE -- see his JS for receiving code 
+// talk to WEB page directly with shiftr -- based on arduino examples
+// and
+// example from TOM IGOE -- see his JS for receiving code 
 // https://tigoe.github.io/mqtt-examples/p5js-mqtt-client/public/index.html
 
 // this is on shiftry try -- main page 
