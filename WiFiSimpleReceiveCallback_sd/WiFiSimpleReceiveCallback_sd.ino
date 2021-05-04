@@ -1,29 +1,20 @@
-
-// talk to WEB page directly with shiftr -- based on arduino examples
-// and
-// example from TOM IGOE -- see his JS for receiving code 
-// https://tigoe.github.io/mqtt-examples/p5js-mqtt-client/public/index.html
-// https://github.com/tigoe/mqtt-examples/tree/master/p5js-mqtt-client
-
-
-// this is on shiftry try -- main page 
-// public.cloud.shiftr.io
-// public, public 
-
-
 /*
-  ArduinoMqttClient - WiFi Simple Sender
+  ArduinoMqttClient - WiFi Simple Receive Callback
 
-  This example connects to a MQTT broker and publishes a message to
-  a topic once a second.
+  This example connects to a MQTT broker and subscribes to a single topic.
+  When a message is received it prints the message to the serial monitor,
+  it uses the callback functionality of the library.
 
   The circuit:
-  - Arduino MKR 1000, MKR 1010 or Uno WiFi Rev2 board
+  - Arduino MKR 1000, MKR 1010, Uno WiFi Rev.2 board or nano iot 33
 
   This example code is in the public domain.
 */
 
 #include <ArduinoMqttClient.h>
+ 
+
+
 #if defined(ARDUINO_SAMD_MKRWIFI1010) || defined(ARDUINO_SAMD_NANO_33_IOT) || defined(ARDUINO_AVR_UNO_WIFI_REV2)
   #include <WiFiNINA.h>
 #elif defined(ARDUINO_SAMD_MKR1000)
@@ -34,7 +25,7 @@
 
 #include "arduino_secrets.h"
 ///////please enter your sensitive data in the Secret tab/arduino_secrets.h
-char ssid[] = SECRET_SSID;    // your network SSID (name)
+char ssid[] = SECRET_SSID;        // your network SSID (name)
 char pass[] = SECRET_PASS;    // your network password (use for WPA, or use as key for WEP)
 
 // To connect with SSL/TLS:
@@ -48,14 +39,7 @@ MqttClient mqttClient(wifiClient);
 
 const char broker[] = "public.cloud.shiftr.io"; // yes this url even when unique instance
 int        port     = 1883;
-const char topic[]  = "notes";
-
-
-
-const long interval = 1000;
-unsigned long previousMillis = 0;
-
-int count = 0;
+const char topic[]  = "LEDcontrol";
 
 void setup() {
   //Initialize serial and wait for port to open:
@@ -64,7 +48,7 @@ void setup() {
     ; // wait for serial port to connect. Needed for native USB port only
   }
 
-  // attempt to connect to WiFi network:
+  // attempt to connect to Wifi network:
   Serial.print("Attempting to connect to WPA SSID: ");
   Serial.println(ssid);
   while (WiFi.begin(ssid, pass) != WL_CONNECTED) {
@@ -89,41 +73,49 @@ void setup() {
   if (!mqttClient.connect(broker, port)) {
     Serial.print("MQTT connection failed! Error code = ");
     Serial.println(mqttClient.connectError());
-
     while (1);
   }
 
   Serial.println("You're connected to the MQTT broker!");
   Serial.println();
+
+  // set the message receive callback
+  mqttClient.onMessage(onMqttMessage);
+
+  Serial.print("Subscribing to topic: ");
+  Serial.println(topic);
+  Serial.println();
+
+  // subscribe to a topic
+  mqttClient.subscribe(topic);
+
+  // topics can be unsubscribed using:
+  // mqttClient.unsubscribe(topic);
+
+  Serial.print("Waiting for messages on topic: ");
+  Serial.println(topic);
+  Serial.println();
 }
 
 void loop() {
-  // call poll() regularly to allow the library to send MQTT keep alives which
-  // avoids being disconnected by the broker
+  // call poll() regularly to allow the library to receive MQTT messages and
+  // send MQTT keep alives which avoids being disconnected by the broker
   mqttClient.poll();
+}
 
-  // to avoid having delays in loop, we'll use the strategy from BlinkWithoutDelay
-  // see: File -> Examples -> 02.Digital -> BlinkWithoutDelay for more info
-  unsigned long currentMillis = millis();
-  
-  if (currentMillis - previousMillis >= interval) {
-    // save the last time a message was sent
-    previousMillis = currentMillis;
+void onMqttMessage(int messageSize) {
+  // we received a message, print out the topic and contents
+  Serial.println("Received a message with topic '");
+  Serial.print(mqttClient.messageTopic());
+  Serial.print("', length ");
+  Serial.print(messageSize);
+  Serial.println(" bytes:");
 
-    Serial.print("Sending message to topic: ");
-    Serial.println(topic);
-    Serial.print("hello ");
-    Serial.println(count);
-
-    // send message, the Print interface can be used to set the message contents
-    mqttClient.beginMessage(topic);
-    //mqttClient.print("hello ");
-    mqttClient.print(count);
-    mqttClient.endMessage();
-
-    Serial.println();
-
-    count++;
-    if (count>15) count=0;
+  // use the Stream interface to print the contents
+  while (mqttClient.available()) {
+    Serial.print((char)mqttClient.read());
   }
+  Serial.println();
+
+  Serial.println();
 }

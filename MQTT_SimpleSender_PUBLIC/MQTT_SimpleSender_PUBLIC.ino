@@ -24,6 +24,7 @@
 #endif
 
 #include "arduino_secrets.h"
+
 ///////please enter your sensitive data in the Secret tab/arduino_secrets.h
 char ssid[] = SECRET_SSID;    // your network SSID (name)
 char pass[] = SECRET_PASS;    // your network password (use for WPA, or use as key for WEP)
@@ -39,7 +40,7 @@ MqttClient mqttClient(wifiClient);
 
 const char broker[] = "public.cloud.shiftr.io";
 int        port     = 1883;
-const char topic[]  = "topic1";
+const char topic[]  = "squids";
 
 const long interval = 1000;
 unsigned long previousMillis = 0;
@@ -67,7 +68,7 @@ void setup() {
 
   // You can provide a unique client ID, if not set the library uses Arduino-millis()
   // Each client must have a unique client ID
-  mqttClient.setId("myTag");
+  mqttClient.setId("sd");
 
   // You can provide a username and password for authentication
   mqttClient.setUsernamePassword("public", "public"); // instance name, token secret
@@ -109,9 +110,11 @@ void loop() {
     mqttClient.print("hello ");
     mqttClient.print(count);
     mqttClient.endMessage();
-
+  
     Serial.println();
 
     count++;
+
   }
+  
 }
